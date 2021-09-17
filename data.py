@@ -5,17 +5,21 @@ import torch
 from torch.autograd import Variable
 from torch.utils.data import Dataset
 import torchvision.transforms as transforms
+from torchvision.transforms.functional import InterpolationMode
 from PIL import Image
 
 
 class ImageDataset(Dataset):
     def __init__(self, root, transforms_=None, mode='train'):
-        transforms_ = [ transforms.Resize(int(143), Image.BICUBIC), 
-                transforms.RandomCrop(128), 
-                transforms.RandomHorizontalFlip(),
-                transforms.ToTensor(),
-                transforms.Normalize((0.5,0.5,0.5), (0.5,0.5,0.5)) 
-              ]
+        transforms_ = [
+#             transforms.Resize(int(143), InterpolationMode.BICUBIC),
+#             transforms.RandomCrop(128),
+            transforms.RandomResizedCrop(size=256, interpolation=InterpolationMode.BICUBIC),
+            #transforms.RandomCrop(256),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,0.5,0.5), (0.5,0.5,0.5)) 
+          ]
         #content source
         self.transform = transforms.Compose(transforms_)
         self.X = sorted(glob.glob(os.path.join(root, f'{mode}Content', '*')))
@@ -24,6 +28,7 @@ class ImageDataset(Dataset):
         self.Y = []
         style_sources = sorted(glob.glob(os.path.join(root, f'{mode}Styles', '*')))
         for label,style in enumerate(style_sources):
+            print(f"Style: {style}")
             temp = [(label,x) for x in sorted(glob.glob(style_sources[label]+"/*"))]
             self.Y.extend(temp)
         
